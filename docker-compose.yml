@@ -1,31 +1,31 @@
 services:
+  #DockerFileからAPPコンテナ起動
   app:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-#マウントディレクトリを定義。WARをdeployするので、/artifactsをwebappsにマウント
-    #volumes:
-    #- /artifacts:/usr/local/tomcat/webapps
+    env_file:
+      - .env.mysql
     depends_on:
-      - mysql
-    environment:
-      - DB_HOST=mysql
-      - DB_PORT=3306
+      mysql:
+        condition: service_healthy
 
   mysql:
     image: mysql:8.0
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: password1
-      MYSQL_DATABASE: myapp
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+    env_file:
+        - .env.mysql
+    #healthCheckを追加
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
     volumes:
       - mysql_data:/var/lib/mysql
 
 volumes:
   mysql_data:
     driver: local
+
