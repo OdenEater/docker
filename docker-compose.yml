@@ -11,6 +11,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - backend
 
   mysql:
     image: mysql:8.0
@@ -24,8 +26,25 @@ services:
       retries: 5
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+#nginx
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - backend
 
 volumes:
   mysql_data:
     driver: local
 
+networks:
+  backend:
+    driver: bridge
