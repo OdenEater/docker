@@ -2,12 +2,12 @@ services:
   #DockerFileからAPPコンテナ起動
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+      context: ./app
+      dockerfile: Dockerfile.app
     env_file:
-      - .env.mysql
+      - ./app/.env.mysql
+    volumes:
+      - ./app/target:/app/target
     depends_on:
       mysql:
         condition: service_healthy
@@ -15,9 +15,11 @@ services:
       - backend
 
   mysql:
-    image: mysql:8.0
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile.mysql
     env_file:
-        - .env.mysql
+        - ./mysql/.env.mysql
     #healthCheckを追加
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -25,17 +27,18 @@ services:
       timeout: 10s
       retries: 5
     volumes:
-      - mysql_data:/var/lib/mysql
+#      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
     networks:
       - backend
 
 #nginx
   nginx:
-    image: nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.nginx
     ports:
       - "80:80"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - app
     networks:

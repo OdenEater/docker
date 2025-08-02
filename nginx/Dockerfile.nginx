@@ -1,0 +1,9 @@
+FROM nginx:latest
+
+# Nginxの設定ファイルとHTMLファイルをコンテナにコピー。
+#これらのファイルはイメージとして残り続けるので本番用
+#ただしcomposeのほうでマウントしているとそちらが優先される。
+COPY conf.d/ /etc/nginx/conf.d/
+COPY html/ /usr/share/nginx/html/
+
+EXPOSE 80
